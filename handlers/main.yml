@@ -1,0 +1,8 @@
+---
+# handlers file for ansible-role-proxmox-email
+- name: Hash sasl_passwd
+  ansible.builtin.command: postmap hash:/etc/postfix/sasl_passwd
+- name: Hash smtp_header_checks
+  ansible.builtin.command: postmap hash:/etc/postfix/smtp_header_checks
+- name: Reload Postfix
+  ansible.builtin.command: postfix reload

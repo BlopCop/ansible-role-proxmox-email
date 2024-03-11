@@ -1,0 +1,39 @@
+---
+# tasks file for ansible-role-proxmox-email
+- name: Collect hostname if not found. 
+  setup:
+    gather_subset:
+      - ansible_hostname
+      - ansible_nodename
+  when: ansible_hostname is undefined or ansible_nodename is undefined
+
+- name: Install dependencies
+  ansible.builtin.apt:
+    pkg:
+    - libsasl2-modules
+    - mailutils
+    - postfix-pcre
+
+- name: Set up sasl authentication
+  ansible.builtin.template:
+      src: templates/sasl_passwd.j2
+      dest:  /etc/postfix/sasl_passwd
+      mode: 600
+  notify:
+    - Hash sasl_passwd
+    - Reload Postfix
+
+- name: Set postfix config
+  ansible.builtin.template:
+      src: templates/main.cf.j2
+      dest:  /etc/postfix/main.cf
+  notify:
+  - Reload Postfix
+
+- name: Set up smtp header
+  ansible.builtin.template:
+    src: templates/smtp_header_checks.j2
+    dest: /etc/postfix/smtp_header_checks
+  notify:
+    - Hash smtp_header_checks
+    - Reload Postfix
